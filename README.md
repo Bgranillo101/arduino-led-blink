@@ -25,12 +25,13 @@ This project serves as a foundational exercise for more advanced embedded system
 
 ### ASCII Diagram
 
-  Arduino Uno R3
+  Arduino Uno
  ┌───────────┐
  │           │
  │     D13 o─┼────[220Ω]────>|───── GND
  │           │               LED
  └───────────┘
+
 
 ### Connection Table
 
