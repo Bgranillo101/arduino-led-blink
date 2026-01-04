@@ -1,18 +1,18 @@
-const int ledPin = 13;
-unsigned long previousMillis = 0;
-const long interval = 1000;
-bool ledState = LOW;
+const int ledPin = 9;   // PWM-capable pin
+int brightness = 0;
+int fadeAmount = 5;
 
 void setup() {
   pinMode(ledPin, OUTPUT);
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
+  analogWrite(ledPin, brightness);
+  brightness += fadeAmount;
 
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    ledState = !ledState;
-    digitalWrite(ledPin, ledState);
+  if (brightness <= 0 || brightness >= 255) {
+    fadeAmount = -fadeAmount;
   }
+
+  delay(30);
 }
