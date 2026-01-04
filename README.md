@@ -1,7 +1,3 @@
-# arduino-led-blink
-Arduino LED blinking project using an external LED and a 220Ω resistor.
-
-
 # Arduino LED Blinking Sequence (External LED)
 
 ## Overview
