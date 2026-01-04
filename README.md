@@ -1,17 +1,16 @@
-# Arduino LED Blinking Sequence (External LED)
+# Arduino LED Blinking Sequence (Multi-LED System)
 
 ## Overview
-This project demonstrates core embedded systems concepts using an Arduino Uno R3 to control an external LED through a 220 Ω current-limiting resistor. The system evolved from a basic LED blink into a more advanced firmware design incorporating non-blocking timing and PWM-based brightness control.
+This project demonstrates core embedded systems concepts using an Arduino Uno R3 to control multiple external LEDs. The system has evolved from a basic single-LED blink into an advanced firmware design incorporating **non-blocking timing** and **multi-channel output**.
 
-The project emphasizes safe hardware interfacing, real-time timing techniques, and microcontroller-based signal modulation, serving as a strong foundation for more complex embedded and firmware systems.
+The project emphasizes safe hardware interfacing, state-based logic, and real-time timing techniques (avoiding `delay()`), serving as a strong foundation for more complex embedded and firmware systems.
 
 ---
 
 ## Hardware Components
 - Arduino Uno R3  
-- 3 × LED  
-- 3 × 220 Ω resistor  
-- Breadboard  
+- **3 × LED** (Red, Yellow, Green)  
+- **3 × 220 Ω resistor** - Breadboard  
 - Jumper wires  
 - USB cable  
 
@@ -19,15 +18,28 @@ The project emphasizes safe hardware interfacing, real-time timing techniques, a
 
 ## Circuit Schematic
 
-The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13 of the Arduino Uno, as well as a push button connected to pin 2 for blink rate control.
+The following circuit expands the initial design to include three independent LED channels. Each LED is protected by a 220 Ω current-limiting resistor connected to PWM-capable digital pins (9, 10, and 11).
 
-![Arduino LED Circuit Schematic](docs/led_blink3.png)
+![Arduino LED Circuit Schematic](docs/led_blink4.png)
+
+---
+
+
+### ASCII Diagram
+```text
+        Arduino Uno
+       ┌───────────┐
+ D9  o─┤─[220Ω]─>| LED1 (Red)    ──┐
+ D10 o─┤─[220Ω]─>| LED2 (Yellow) ──┼─ GND
+ D11 o─┤─[220Ω]─>| LED3 (Green)  ──┘
+       └───────────┘
+```
 
 ---
 
 ## Simulation
 
-A live simulation of this circuit was created using Autodesk Tinkercad. The simulation allows users to view the circuit, inspect wiring, and observe LED behavior without physical hardware.
+A live simulation of this multi-LED circuit was created using Autodesk Tinkercad. The simulation allows users to view the circuit, inspect wiring, and observe LED behavior without physical hardware.
 
 🔗 **Tinkercad Circuit Simulation:**  
 [Click here to view the simulation](https://www.tinkercad.com/things/erGzwExGLf8-ledblink)
@@ -36,23 +48,39 @@ A live simulation of this circuit was created using Autodesk Tinkercad. The simu
 
 ## Firmware
 ```cpp
-const int ledPin = 9;   // PWM-capable pin
-int brightness = 0;
-int fadeAmount = 5;
+const int ledPins[] = {9, 10, 11}; // Array of LED pins
+const int numLEDs = 3;
+unsigned long previousMillis = 0;
+int currentLED = 0;
+const long interval = 500; // Sequence speed in ms
 
 void setup() {
-  pinMode(ledPin, OUTPUT);
+  for (int i = 0; i < numLEDs; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
 }
 
 void loop() {
-  analogWrite(ledPin, brightness);
-  brightness += fadeAmount;
+  unsigned long currentMillis = millis();
 
-  if (brightness <= 0 || brightness >= 255) {
-    fadeAmount = -fadeAmount;
+  // Non-blocking timing check
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    // Turn off all LEDs (Reset state)
+    for (int i = 0; i < numLEDs; i++) {
+      digitalWrite(ledPins[i], LOW);
+    }
+
+    // Turn on the current LED in the sequence
+    digitalWrite(ledPins[currentLED], HIGH);
+
+    // Increment index and wrap around
+    currentLED++;
+    if (currentLED >= numLEDs) {
+      currentLED = 0;
+    }
   }
-
-  delay(30);
 }
 ```
 
@@ -60,70 +88,70 @@ void loop() {
 
 ## Code Explanation
 
-## Code Explanation
-The firmware uses **Pulse Width Modulation (PWM)** to control LED brightness rather than a simple ON/OFF digital output.
+The firmware transitions from simple modulation to a **Finite State Machine (FSM)** approach using time-based triggers to control multiple LEDs efficiently and safely.
 
-* **Pin Configuration:** The LED is connected to digital pin 9, which supports hardware PWM.
-* **Signal Generation:** `analogWrite()` outputs a PWM signal with a duty cycle proportional to the brightness value (0–255).
-* **Logic Flow:** The brightness value is incremented or decremented on each loop iteration, creating a smooth fade effect.
-* **Direction Control:** When the brightness reaches its minimum or maximum value, the direction of change is reversed.
-* **Core Concept:** This implementation demonstrates basic PWM control and signal modulation on a microcontroller.
+### Non-Blocking Timing
+By using `millis()`, the code calculates the elapsed time since the last update instead of relying on `delay()`. This prevents the microcontroller from entering a “frozen” state and allows for future expansion (such as reading sensors or handling inputs) without interrupting the LED sequence.
+
+### Array Processing
+LED pins are stored in an array, making the design scalable. Adding a fourth or fifth LED only requires updating the `ledPins` array and the `numLEDs` constant—no major logic changes are needed.
+
+### Sequential Logic
+The system cycles through the indices of the LED array, turning on one LED at a time. Once the final LED is reached, the index resets to the beginning, creating a clean “chaser” or *Knight Rider–style* effect.
 
 ---
 
 ## Electrical Considerations
-An external LED is interfaced with the Arduino through a **220 Ω current-limiting resistor** to ensure safe operation.
 
-| Parameter | Value |
-| :--- | :--- |
-| **Arduino Output Voltage** | 5 V |
-| **Typical LED Forward Voltage** | ~2.0 V |
-| **Resistor Value** | 220 Ω |
+Multiple LEDs are interfaced with the Arduino, each using its own **220 Ω current-limiting resistor** to ensure safe operation.
 
-The resistor limits current to approximately **13–15 mA**, keeping both the LED and the microcontroller’s I/O pin within safe operating limits. PWM varies perceived brightness by adjusting duty cycle rather than voltage level.
+| Parameter                   | Value        |
+|-----------------------------|--------------|
+| Total Arduino Current Limit | ~200 mA      |
+| Current per Active LED      | ~13–15 mA    |
+| Resistor Value              | 220 Ω        |
+
+Because the firmware ensures that **only one LED is active at any given time**, the total current draw remains well within the safe operating limits of the Arduino Uno’s ATmega328P microcontroller.
 
 ---
 
 ## Testing & Validation
 
 ### Test Procedure
-1.  Assemble the LED and resistor circuit according to the schematic.
-2.  Upload the firmware to the Arduino Uno using the Arduino IDE.
-3.  Power the board via USB.
-4.  Observe LED brightness behavior.
+1. Assemble the 3-LED circuit on the breadboard.
+2. Upload the updated firmware using the Arduino IDE.
+3. Verify that only **one LED is lit at any given time**.
+4. Measure the timing interval to confirm it matches the **500 ms requirement**.
 
 ### Expected Behavior
-* LED brightness gradually increases from OFF to full brightness.
-* LED brightness then gradually decreases back to OFF.
-* The fade pattern repeats continuously.
+- LED 1 turns **ON** for 500 ms, then **OFF**
+- LED 2 turns **ON** for 500 ms, then **OFF**
+- LED 3 turns **ON** for 500 ms, then **OFF**
+- The sequence loops back to LED 1
 
 ### Results
-The LED brightness transitioned smoothly with no flickering or instability, confirming correct PWM output and proper hardware wiring.
+The LEDs transitioned in a clean, predictable sequence. The use of `millis()` ensures consistent timing while allowing the processor to remain responsive, avoiding blocking delay loops.
 
 ---
 
 ## Limitations
-* **Timing:** PWM implementation currently uses a blocking `delay()` for fade timing.
-* **Flexibility:** Brightness transition rate is fixed in firmware.
-* **Control:** No external input or runtime configuration is implemented.
-
-> These limitations are acceptable for demonstrating PWM fundamentals but would be addressed in more advanced embedded designs.
+- **Fixed Sequence:** The LED order is hardcoded in the array.
+- **No Input Control:** Timing cannot be adjusted without re-uploading the firmware.
+- **Single Pattern:** Only one animation pattern is currently implemented.
 
 ---
 
 ## Future Improvements
- 
-* Implement a finite state machine for structured LED behavior.
-* Add serial output for debugging and real-time monitoring.
+- Implement a true *Knight Rider* (oscillating forward and backward) pattern.
+- Integrate a push button to cycle through different animation modes or speeds.
+- Add Serial Monitor output to track the current LED state in real time.
 
 ---
 
 ## Skills Demonstrated
-
-* **Embedded C/C++ programming**
-* **Microcontroller digital I/O and PWM configuration**
-* **Safe hardware interfacing using current-limiting resistors**
-* **Signal modulation and timing control**
-* **Breadboard prototyping**
-* **Firmware testing and validation**
-* **Professional technical documentation using Markdown**
+- **Non-Blocking Firmware Design:** Implementing timing logic using `millis()`
+- **Data Structures:** Using arrays to manage hardware pin assignments
+- **Multi-Channel Hardware Interfacing:** Managing multiple I/O paths simultaneously
+- **State Logic:** Creating sequential execution patterns
+- **Scalable Code Architecture:** Writing modular, extensible firmware
+- **Professional Technical Documentation:** Using Markdown for clear project communication
