@@ -1,7 +1,7 @@
 # Arduino LED Blinking Sequence (External LED)
 
 ## Overview
-This project demonstrates fundamental embedded systems concepts using an Arduino Uno R3 to control an external LED through a 220 Ω current-limiting resistor. The firmware toggles a digital output pin at fixed one-second intervals, introducing microcontroller I/O configuration, timing control, and safe hardware interfacing.
+This project demonstrates fundamental embedded systems concepts using an Arduino Uno R3 to control an external LED through a 220 Ω current-limiting resistor. The firmware toggles a digital output pin, and a push button allows dynamic control of the blink rate, introducing microcontroller I/O configuration, timing control, input handling, and safe hardware interfacing.
 
 This project serves as a foundational exercise for more advanced embedded systems, firmware, and hardware-software integration work.
 
@@ -10,7 +10,9 @@ This project serves as a foundational exercise for more advanced embedded system
 ## Hardware Components
 - Arduino Uno R3  
 - 1 × LED  
-- 1 × 220 Ω resistor  
+- 1 × 220 Ω resistor
+- 1 x 10 kΩ resistor
+- Push Button   
 - Breadboard  
 - Jumper wires  
 - USB cable  
@@ -19,9 +21,9 @@ This project serves as a foundational exercise for more advanced embedded system
 
 ## Circuit Schematic
 
-The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13 of the Arduino Uno.
+The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13 of the Arduino Uno, as well as a push button connected to pin 2 for blink rate control.
 
-![Arduino LED Circuit Schematic](docs/led_blink_schematic.png)
+![Arduino LED Circuit Schematic](docs/led_blink2.png)
 
 ---
 
@@ -36,15 +38,33 @@ A live simulation of this circuit was created using Autodesk Tinkercad. The simu
 
 ## Firmware
 ```cpp
+const int ledPin = 13;
+const int buttonPin = 2;
+
+unsigned long previousMillis = 0;
+long interval = 1000;
+bool ledState = LOW;
+
 void setup() {
-  pinMode(13, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP); // Internal pull-up resistor
 }
 
 void loop() {
-  digitalWrite(13, HIGH);
-  delay(1000);
-  digitalWrite(13, LOW);
-  delay(1000);
+  // Check push button to adjust blink interval
+  if (digitalRead(buttonPin) == LOW) {
+    interval = 250;   // Fast blink when button pressed
+  } else {
+    interval = 1000;  // Normal blink when button not pressed
+  }
+
+  // Non-blocking timing logic
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    ledState = !ledState;
+    digitalWrite(ledPin, ledState);
+  }
 }
 ```
 
@@ -52,71 +72,78 @@ void loop() {
 
 ## Code Explanation
 
-The firmware is written using the Arduino framework and follows the standard `setup()` and `loop()` execution model.
+The firmware uses Arduino’s standard `setup()` and `loop()` model, updated to support non-blocking timing and push button input:
 
-- `setup()` runs once when the microcontroller powers on or resets. In this function, digital pin 13 is configured as an output using `pinMode()`.
-- `loop()` executes continuously after initialization. The program sets pin 13 HIGH to turn the LED on, waits for 1000 milliseconds, sets the pin LOW to turn the LED off, and waits another 1000 milliseconds before repeating.
+- `setup()` configures the LED pin as output and the button pin as input.  
+- `loop()` continuously reads the button state. If pressed, the blink interval is shortened for a faster blink rate; otherwise, it remains at the default interval.  
 
-This structure demonstrates basic digital output control and timing behavior on a microcontroller.
+Timing is handled using `millis()`, which avoids blocking delays and allows the microcontroller to read inputs continuously while toggling the LED.
+
+This demonstrates input handling, digital I/O control, and real-time timing in embedded systems.
 
 ---
 
 ## Electrical Considerations
 
-An external LED was connected to the Arduino through a 220 Ω current-limiting resistor to prevent excessive current draw and protect both the LED and the microcontroller.
-
+- External LED connected with a 220 Ω resistor to limit current (~13–15 mA).  
 - Arduino output voltage: 5 V  
-- Typical LED forward voltage: ~2.0 V  
-- Resistor value: 220 Ω  
+- LED forward voltage: ~2.0 V  
+- Push button uses an **external 10 kΩ pull-down resistor** to safely detect HIGH/LOW states.  
 
-Using Ohm’s Law, the circuit limits current to approximately 13–15 mA, which is within the safe operating range for standard LEDs and Arduino I/O pins.
+The circuit ensures safe operation for both the LED and Arduino while supporting reliable user input detection.
 
 ---
 
 ## Testing & Validation
 
 ### Test Procedure
-1. Assemble the LED and resistor circuit according to the schematic
-2. Upload the firmware to the Arduino Uno using the Arduino IDE
-3. Power the board via USB
-4. Observe LED behavior
+
+1. Assemble the LED, resistor, and push button circuit according to the schematic.  
+2. Upload the firmware to the Arduino Uno using the Arduino IDE.  
+3. Power the board via USB.  
+4. Observe LED behavior:
+   - LED blinks at 1-second intervals by default.  
+   - Pressing the push button increases the blink speed to 250 ms intervals.  
 
 ### Expected Behavior
-- LED turns ON for 1 second
-- LED turns OFF for 1 second
-- Pattern repeats continuously
+
+- **Normal blink:** LED ON 1s, OFF 1s  
+- **Button pressed:** LED ON 0.25s, OFF 0.25s  
+
+Pattern repeats continuously with correct response to button input.
 
 ### Results
-The LED blinked consistently at the expected interval with no abnormal behavior, confirming correct firmware operation and hardware wiring.
+
+- LED and push button behaved as expected.  
+- Button reliably adjusted blink rate without affecting other operations.
 
 ---
 
 ## Limitations
 
-- The program uses blocking delays (`delay()`), which prevents the microcontroller from performing other tasks concurrently
-- The blink interval is fixed and cannot be changed at runtime
-- No input or feedback mechanisms are implemented
+- PWM brightness control not yet implemented.  
+- Only a single LED is used; multi-LED patterns not implemented.  
+- No serial debugging or runtime monitoring currently.  
 
-These limitations are acceptable for a foundational project, but would need to be addressed in more advanced embedded systems applications.
+These limitations will be addressed in future improvements (steps 3–5).
 
 ---
 
 ## Future Improvements
 
-- Replace blocking delays with non-blocking timing using `millis()`
-- Add a push button to allow user control of the blink rate
-- Implement PWM to control LED brightness
-- Expand to multiple LEDs with different timing patterns
-- Add serial output for debugging and runtime monitoring
+- Implement PWM to control LED brightness.  
+- Expand to multiple LEDs with different timing patterns.  
+- Add serial output for debugging and runtime monitoring.
 
 ---
 
 ## Skills Demonstrated
 
-- Embedded C/C++ programming
-- Microcontroller digital I/O configuration
-- Safe hardware interfacing using current-limiting resistors
-- Timing and control logic
-- Breadboard prototyping
-- Firmware deployment and debugging
+- Embedded C/C++ programming  
+- Microcontroller digital I/O configuration  
+- Safe hardware interfacing with current-limiting and pull-down resistors  
+- Non-blocking timing using `millis()`  
+- Push button input handling  
+- Breadboard prototyping and circuit validation  
+- Firmware deployment and debugging  
 - Technical documentation using Markdown
