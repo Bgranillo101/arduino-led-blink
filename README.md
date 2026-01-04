@@ -1,4 +1,4 @@
-# Arduino LED Blinking Sequence (Multi-LED System)
+# Arduino LED Blinking Sequence (Multi-LED-FSM System)
 
 ## Overview
 This project demonstrates core embedded systems concepts using an Arduino Uno R3 to control multiple external LEDs. The system has evolved from a basic single-LED blink into an advanced firmware design incorporating **non-blocking timing** and **multi-channel output**.
