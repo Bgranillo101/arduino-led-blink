@@ -25,7 +25,7 @@ This project serves as a foundational exercise for more advanced embedded system
 
 The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13.
 
-![Arduino LED Schematic](docs/schematic.png)
+![Arduino LED Schematic](docs/led_blink_schematic.png)
 
 ### ASCII Diagram
 
