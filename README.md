@@ -1,18 +1,16 @@
 # Arduino LED Blinking Sequence (External LED)
 
 ## Overview
-This project demonstrates fundamental embedded systems concepts using an Arduino Uno R3 to control an external LED through a 220 Ω current-limiting resistor. The firmware toggles a digital output pin, and a push button allows dynamic control of the blink rate, introducing microcontroller I/O configuration, timing control, input handling, and safe hardware interfacing.
+This project demonstrates core embedded systems concepts using an Arduino Uno R3 to control an external LED through a 220 Ω current-limiting resistor. The system evolved from a basic LED blink into a more advanced firmware design incorporating non-blocking timing and PWM-based brightness control.
 
-This project serves as a foundational exercise for more advanced embedded systems, firmware, and hardware-software integration work.
+The project emphasizes safe hardware interfacing, real-time timing techniques, and microcontroller-based signal modulation, serving as a strong foundation for more complex embedded and firmware systems.
 
 ---
 
 ## Hardware Components
 - Arduino Uno R3  
-- 1 × LED  
-- 1 × 220 Ω resistor
-- 1 x 10 kΩ resistor
-- Push Button   
+- 3 × LED  
+- 3 × 220 Ω resistor  
 - Breadboard  
 - Jumper wires  
 - USB cable  
@@ -23,7 +21,7 @@ This project serves as a foundational exercise for more advanced embedded system
 
 The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13 of the Arduino Uno, as well as a push button connected to pin 2 for blink rate control.
 
-![Arduino LED Circuit Schematic](docs/led_blink2.png)
+![Arduino LED Circuit Schematic](docs/led_blink3.png)
 
 ---
 
@@ -38,33 +36,23 @@ A live simulation of this circuit was created using Autodesk Tinkercad. The simu
 
 ## Firmware
 ```cpp
-const int ledPin = 13;
-const int buttonPin = 2;
-
-unsigned long previousMillis = 0;
-long interval = 1000;
-bool ledState = LOW;
+const int ledPin = 9;   // PWM-capable pin
+int brightness = 0;
+int fadeAmount = 5;
 
 void setup() {
   pinMode(ledPin, OUTPUT);
-  pinMode(buttonPin, INPUT_PULLUP); // Internal pull-up resistor
 }
 
 void loop() {
-  // Check push button to adjust blink interval
-  if (digitalRead(buttonPin) == LOW) {
-    interval = 250;   // Fast blink when button pressed
-  } else {
-    interval = 1000;  // Normal blink when button not pressed
+  analogWrite(ledPin, brightness);
+  brightness += fadeAmount;
+
+  if (brightness <= 0 || brightness >= 255) {
+    fadeAmount = -fadeAmount;
   }
 
-  // Non-blocking timing logic
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    ledState = !ledState;
-    digitalWrite(ledPin, ledState);
-  }
+  delay(30);
 }
 ```
 
@@ -72,78 +60,70 @@ void loop() {
 
 ## Code Explanation
 
-The firmware uses Arduino’s standard `setup()` and `loop()` model, updated to support non-blocking timing and push button input:
+## Code Explanation
+The firmware uses **Pulse Width Modulation (PWM)** to control LED brightness rather than a simple ON/OFF digital output.
 
-- `setup()` configures the LED pin as output and the button pin as input.  
-- `loop()` continuously reads the button state. If pressed, the blink interval is shortened for a faster blink rate; otherwise, it remains at the default interval.  
-
-Timing is handled using `millis()`, which avoids blocking delays and allows the microcontroller to read inputs continuously while toggling the LED.
-
-This demonstrates input handling, digital I/O control, and real-time timing in embedded systems.
+* **Pin Configuration:** The LED is connected to digital pin 9, which supports hardware PWM.
+* **Signal Generation:** `analogWrite()` outputs a PWM signal with a duty cycle proportional to the brightness value (0–255).
+* **Logic Flow:** The brightness value is incremented or decremented on each loop iteration, creating a smooth fade effect.
+* **Direction Control:** When the brightness reaches its minimum or maximum value, the direction of change is reversed.
+* **Core Concept:** This implementation demonstrates basic PWM control and signal modulation on a microcontroller.
 
 ---
 
 ## Electrical Considerations
+An external LED is interfaced with the Arduino through a **220 Ω current-limiting resistor** to ensure safe operation.
 
-- External LED connected with a 220 Ω resistor to limit current (~13–15 mA).  
-- Arduino output voltage: 5 V  
-- LED forward voltage: ~2.0 V  
-- Push button uses an **external 10 kΩ pull-down resistor** to safely detect HIGH/LOW states.  
+| Parameter | Value |
+| :--- | :--- |
+| **Arduino Output Voltage** | 5 V |
+| **Typical LED Forward Voltage** | ~2.0 V |
+| **Resistor Value** | 220 Ω |
 
-The circuit ensures safe operation for both the LED and Arduino while supporting reliable user input detection.
+The resistor limits current to approximately **13–15 mA**, keeping both the LED and the microcontroller’s I/O pin within safe operating limits. PWM varies perceived brightness by adjusting duty cycle rather than voltage level.
 
 ---
 
 ## Testing & Validation
 
 ### Test Procedure
-
-1. Assemble the LED, resistor, and push button circuit according to the schematic.  
-2. Upload the firmware to the Arduino Uno using the Arduino IDE.  
-3. Power the board via USB.  
-4. Observe LED behavior:
-   - LED blinks at 1-second intervals by default.  
-   - Pressing the push button increases the blink speed to 250 ms intervals.  
+1.  Assemble the LED and resistor circuit according to the schematic.
+2.  Upload the firmware to the Arduino Uno using the Arduino IDE.
+3.  Power the board via USB.
+4.  Observe LED brightness behavior.
 
 ### Expected Behavior
-
-- **Normal blink:** LED ON 1s, OFF 1s  
-- **Button pressed:** LED ON 0.25s, OFF 0.25s  
-
-Pattern repeats continuously with correct response to button input.
+* LED brightness gradually increases from OFF to full brightness.
+* LED brightness then gradually decreases back to OFF.
+* The fade pattern repeats continuously.
 
 ### Results
-
-- LED and push button behaved as expected.  
-- Button reliably adjusted blink rate without affecting other operations.
+The LED brightness transitioned smoothly with no flickering or instability, confirming correct PWM output and proper hardware wiring.
 
 ---
 
 ## Limitations
+* **Timing:** PWM implementation currently uses a blocking `delay()` for fade timing.
+* **Flexibility:** Brightness transition rate is fixed in firmware.
+* **Control:** No external input or runtime configuration is implemented.
 
-- PWM brightness control not yet implemented.  
-- Only a single LED is used; multi-LED patterns not implemented.  
-- No serial debugging or runtime monitoring currently.  
-
-These limitations will be addressed in future improvements (steps 3–5).
+> These limitations are acceptable for demonstrating PWM fundamentals but would be addressed in more advanced embedded designs.
 
 ---
 
 ## Future Improvements
-
-- Implement PWM to control LED brightness.  
-- Expand to multiple LEDs with different timing patterns.  
-- Add serial output for debugging and runtime monitoring.
+ 
+* Implement a finite state machine for structured LED behavior.
+* Add serial output for debugging and real-time monitoring.
 
 ---
 
 ## Skills Demonstrated
 
-- Embedded C/C++ programming  
-- Microcontroller digital I/O configuration  
-- Safe hardware interfacing with current-limiting and pull-down resistors  
-- Non-blocking timing using `millis()`  
-- Push button input handling  
-- Breadboard prototyping and circuit validation  
-- Firmware deployment and debugging  
-- Technical documentation using Markdown
+* **Embedded C/C++ programming**
+* **Microcontroller digital I/O and PWM configuration**
+* **Safe hardware interfacing using current-limiting resistors**
+* **Signal modulation and timing control**
+* **Breadboard prototyping**
+* **Firmware testing and validation**
+* **Professional technical documentation using Markdown**
