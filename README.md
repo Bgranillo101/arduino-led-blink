@@ -27,6 +27,7 @@ The following schematic was created using Autodesk Tinkercad and represents the 
 
 ![Arduino LED Circuit Schematic](docs/led_blink_schematic.png)
 
+---
 
 ## Simulation
 
@@ -35,6 +36,7 @@ A live simulation of this circuit was created using Autodesk Tinkercad. The simu
 🔗 **Tinkercad Circuit Simulation:**  
 [Click here to view the simulation](https://www.tinkercad.com/things/erGzwExGLf8-ledblink)
 
+---
 
 ### Connection Table
 
