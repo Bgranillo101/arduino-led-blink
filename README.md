@@ -23,14 +23,17 @@ This project serves as a foundational exercise for more advanced embedded system
 
 ## Circuit Schematic
 
-### ASCII Diagram
+The following schematic was created using Autodesk Tinkercad and represents the external LED circuit with a 220 Ω current-limiting resistor connected to digital pin 13 of the Arduino Uno.
 
-  Arduino Uno
- ┌───────────┐
- │           │
- │     D13 o─┼────[220Ω]────>|───── GND
- │           │               LED
- └───────────┘
+![Arduino LED Circuit Schematic](docs/led_blink_schematic.png)
+
+
+## Simulation
+
+A live simulation of this circuit was created using Autodesk Tinkercad. The simulation allows users to view the circuit, inspect wiring, and observe LED behavior without physical hardware.
+
+🔗 **Tinkercad Circuit Simulation:**  
+[Click here to view the simulation](https://www.tinkercad.com/things/erGzwExGLf8-ledblink)
 
 
 ### Connection Table
