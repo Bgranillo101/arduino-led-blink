@@ -20,7 +20,7 @@ The project emphasizes safe hardware interfacing, state-based logic, and real-ti
 
 The following circuit expands the initial design to include three independent LED channels. Each LED is protected by a 220 Ω current-limiting resistor connected to PWM-capable digital pins (9, 10, and 11).
 
-![Arduino LED Circuit Schematic](docs/led_blink4.png)
+![Arduino LED Circuit Schematic](docs/multi_led_fsm.png)
 
 ---
 
