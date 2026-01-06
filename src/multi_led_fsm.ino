@@ -1,5 +1,6 @@
 // ===============================
-// Optional Debug Configuration
+// Optional Debug Configuration 
+// DEBUG 1 is on   DEBUG 0 off
 // ===============================
 #define DEBUG 1 
 
