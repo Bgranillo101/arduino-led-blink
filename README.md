@@ -75,6 +75,9 @@ This project was intentionally developed in incremental steps, each representing
 
 Replaced `delay()` with elapsed-time tracking to prevent CPU blocking and enable multitasking.
 
+#### Demo Video:
+https://youtu.be/nwNrGvDfo4o?si=3Dreq1MFMwKOezgr
+
 #### Key Concepts
 - Real-time timing
 - Cooperative multitasking
@@ -86,6 +89,9 @@ Replaced `delay()` with elapsed-time tracking to prevent CPU blocking and enable
 
 Added a push button to control blink speed at runtime dynamically.
 
+#### Demo Video:
+https://youtu.be/nwNrGvDfo4o?si=breGh_4Y3ePeaBtL
+
 #### Demonstrates
 - Digital input handling
 - Pull-up resistor configuration
@@ -96,6 +102,9 @@ Added a push button to control blink speed at runtime dynamically.
 ### STEP 3 — PWM Brightness Control
 
 Transitioned from binary ON/OFF control to analog PWM-based LED fading.
+
+#### Demo Video:
+https://youtu.be/uvv7LpNOuuY?si=Wy442HVbr-K7RA-t
 
 #### Demonstrates
 - PWM fundamentals
@@ -118,6 +127,9 @@ enum State {
 ```
 
 Each state activates exactly one LED, then transitions deterministically to the next.
+
+#### Demo Video:
+https://youtu.be/lNgU7gGpCBo?si=niat7am-0YRMQRjV
 
 #### Why FSM Matters
 - Predictable behavior
